@@ -1,14 +1,9 @@
-﻿using System.Text;
+﻿using BestDelivery;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BestDelivery;
 
 namespace CaseDelivery
 {
@@ -17,6 +12,7 @@ namespace CaseDelivery
     /// </summary>
     public partial class MainWindow : Window
     {
+        private int _nextOrderId = 1;
         private Order[] currentOrders;
         private BestDelivery.Point depot;
         public MainWindow()
@@ -49,17 +45,15 @@ namespace CaseDelivery
             }
 
             depot = currentOrders.First(o => o.ID == -1).Destination;
-
+            _nextOrderId = currentOrders.Max(o => o.ID)+1;
             // Построение маршрута с получением информации о сегментах
             var routeResult = NearestNeighborAlgorithm.FindOptimalRoute(currentOrders);
             int[] route = routeResult.Route;
             var segments = routeResult.Segments;
 
-            // Визуализация
             VisualizeRoute(route);
             ShowRouteInfo(route, segments);
 
-            // Проверка маршрута
             if (RoutingTestLogic.TestRoutingSolution(
                 depot,
                 currentOrders.Where(o => o.ID != -1).ToArray(),
@@ -73,6 +67,65 @@ namespace CaseDelivery
                 RouteCostText.Text = "Ошибка в маршруте";
             }
         }
+        private void RouteCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (currentOrders == null || depot.Equals(default(BestDelivery.Point)))
+                return;
+
+            // Получаем координаты клика
+            System.Windows.Point clickPos = e.GetPosition(RouteCanvas);
+
+            // Находим границы, как в VisualizeRoute
+            var allPoints = currentOrders.Select(o => o.Destination).ToList();
+            double minX = allPoints.Min(p => p.X);
+            double maxX = allPoints.Max(p => p.X);
+            double minY = allPoints.Min(p => p.Y);
+            double maxY = allPoints.Max(p => p.Y);
+
+            double padding = 0.1 * (maxX - minX);
+            minX -= padding;
+            maxX += padding;
+            minY -= padding;
+            maxY += padding;
+
+            double canvasWidth = RouteCanvas.ActualWidth;
+            double canvasHeight = RouteCanvas.ActualHeight;
+
+            double x = (clickPos.X - 20) / (canvasWidth - 40) * (maxX - minX) + minX;
+            double y = (canvasHeight - 20 - clickPos.Y) / (canvasHeight - 40) * (maxY - minY) + minY;
+
+            var newPoint = new BestDelivery.Point { X = x, Y = y };
+
+            var newOrder = new Order
+            {
+                ID = _nextOrderId++,
+                Destination = newPoint,
+                Priority = 0.2
+            };
+
+            var ordersList = currentOrders.ToList();
+            ordersList.Add(newOrder);
+            currentOrders = ordersList.ToArray();
+
+            // Перестраиваем маршрут
+            var routeResult = NearestNeighborAlgorithm.FindOptimalRoute(currentOrders);
+            int[] route = routeResult.Route;
+            var segments = routeResult.Segments;
+
+            // Отображаем
+            VisualizeRoute(route);
+            ShowRouteInfo(route, segments);
+
+            if (RoutingTestLogic.TestRoutingSolution(depot, currentOrders.Where(o => o.ID != -1).ToArray(), route, out double routeCost))
+            {
+                RouteCostText.Text = $"Стоимость маршрута: {routeCost:F2}";
+            }
+            else
+            {
+                RouteCostText.Text = "Ошибка в маршруте";
+            }
+        }
+
 
         private void VisualizeRoute(int[] route)
         {
@@ -133,7 +186,6 @@ namespace CaseDelivery
                 // Рисуем линию
                 DrawLine(prevScaled, currentScaled, i == route.Length - 1);
 
-                // Рисуем точку (если это не склад)
                 if (route[i] != -1)
                 {
                     DrawPoint(currentScaled, Brushes.Blue, $"Заказ {route[i]}", 10);

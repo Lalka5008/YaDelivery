@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <Reference Include="BestDelivery">
-      <HintPath>..\..\..\..\Desktop\BestDelivery.dll</HintPath>
+      <HintPath>BestDelivery.dll</HintPath>
     </Reference>
   </ItemGroup>
 
