@@ -45,7 +45,7 @@ namespace CaseDelivery
             }
 
             depot = currentOrders.First(o => o.ID == -1).Destination;
-            _nextOrderId = currentOrders.Max(o => o.ID)+1;
+            _nextOrderId = currentOrders.Max(o => o.ID) + 1;
             // Построение маршрута с получением информации о сегментах
             var routeResult = NearestNeighborAlgorithm.FindOptimalRoute(currentOrders);
             int[] route = routeResult.Route;
@@ -126,7 +126,6 @@ namespace CaseDelivery
             }
         }
 
-
         private void VisualizeRoute(int[] route)
         {
             RouteCanvas.Children.Clear();
@@ -157,8 +156,8 @@ namespace CaseDelivery
                 double canvasWidth = RouteCanvas.ActualWidth;
                 double canvasHeight = RouteCanvas.ActualHeight;
 
-                double scaledX = (x - minX) / (maxX - minX) * (canvasWidth - 40) + 20; // +20 для отступа от осей
-                double scaledY = canvasHeight - 20 - (y - minY) / (maxY - minY) * (canvasHeight - 40); // -20 для отступа
+                double scaledX = (x - minX) / (maxX - minX) * (canvasWidth - 40) + 20;
+                double scaledY = canvasHeight - 20 - (y - minY) / (maxY - minY) * (canvasHeight - 40);
                 return new BestDelivery.Point { X = scaledX, Y = scaledY };
             }
 
@@ -166,8 +165,8 @@ namespace CaseDelivery
             BestDelivery.Point prevPoint = depot;
             BestDelivery.Point prevScaled = ScalePoint(prevPoint.X, prevPoint.Y);
 
-            // Рисуем склад
-            DrawPoint(prevScaled, Brushes.Red, "Склад", 12);
+            // Рисуем склад (темно-зеленый)
+            DrawPoint(prevScaled, new SolidColorBrush(Color.FromArgb(255, 0, 100, 0)), "Склад", 14);
 
             for (int i = 1; i < route.Length; i++)
             {
@@ -188,11 +187,12 @@ namespace CaseDelivery
 
                 if (route[i] != -1)
                 {
-                    DrawPoint(currentScaled, Brushes.Blue, $"Заказ {route[i]}", 10);
+                    // Точки заказов (зеленый Delivery Club)
+                    DrawPoint(currentScaled, new SolidColorBrush(Color.FromArgb(255, 0, 177, 79)), $"Заказ {route[i]}", 12);
                 }
                 else
                 {
-                    DrawPoint(currentScaled, Brushes.Green, "Склад", 12);
+                    DrawPoint(currentScaled, new SolidColorBrush(Color.FromArgb(255, 0, 100, 0)), "Склад", 14);
                 }
 
                 prevPoint = currentPoint;
@@ -212,8 +212,8 @@ namespace CaseDelivery
                 Y1 = canvasHeight - 20,
                 X2 = canvasWidth - 20,
                 Y2 = canvasHeight - 20,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 1.5
             };
             RouteCanvas.Children.Add(xAxis);
 
@@ -224,16 +224,20 @@ namespace CaseDelivery
                 Y1 = 20,
                 X2 = 20,
                 Y2 = canvasHeight - 20,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 1.5
             };
             RouteCanvas.Children.Add(yAxis);
 
             // Стрелки для осей
-            DrawArrow(new System.Windows.Point(canvasWidth - 20, canvasHeight - 20), new System.Windows.Point(canvasWidth - 30, canvasHeight - 25)); // X
-            DrawArrow(new System.Windows.Point(canvasWidth - 20, canvasHeight - 20), new System.Windows.Point(canvasWidth - 30, canvasHeight - 15)); // X
-            DrawArrow(new System.Windows.Point(20, 20), new System.Windows.Point(15, 30)); // Y
-            DrawArrow(new System.Windows.Point(20, 20), new System.Windows.Point(25, 30)); // Y
+            DrawArrow(new System.Windows.Point(canvasWidth - 20, canvasHeight - 20),
+                     new System.Windows.Point(canvasWidth - 30, canvasHeight - 25)); // X
+            DrawArrow(new System.Windows.Point(canvasWidth - 20, canvasHeight - 20),
+                     new System.Windows.Point(canvasWidth - 30, canvasHeight - 15)); // X
+            DrawArrow(new System.Windows.Point(20, 20),
+                     new System.Windows.Point(15, 30)); // Y
+            DrawArrow(new System.Windows.Point(20, 20),
+                     new System.Windows.Point(25, 30)); // Y
 
             // Подписи осей
             var xLabel = new TextBlock
@@ -241,7 +245,7 @@ namespace CaseDelivery
                 Text = "X",
                 FontSize = 12,
                 FontWeight = FontWeights.Bold,
-                Foreground = Brushes.Black
+                Foreground = Brushes.White
             };
             Canvas.SetLeft(xLabel, canvasWidth - 15);
             Canvas.SetTop(xLabel, canvasHeight - 35);
@@ -252,7 +256,7 @@ namespace CaseDelivery
                 Text = "Y",
                 FontSize = 12,
                 FontWeight = FontWeights.Bold,
-                Foreground = Brushes.Black
+                Foreground = Brushes.White
             };
             Canvas.SetLeft(yLabel, 25);
             Canvas.SetTop(yLabel, 10);
@@ -267,8 +271,8 @@ namespace CaseDelivery
                 Y1 = start.Y,
                 X2 = end.X,
                 Y2 = end.Y,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 1.5
             };
             RouteCanvas.Children.Add(arrowLine);
         }
@@ -281,8 +285,8 @@ namespace CaseDelivery
                 Width = size,
                 Height = size,
                 Fill = color,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1
+                Stroke = Brushes.White,
+                StrokeThickness = 1.5
             };
 
             Canvas.SetLeft(ellipse, center.X - size / 2);
@@ -295,9 +299,9 @@ namespace CaseDelivery
                 Text = text,
                 FontSize = 12,
                 FontWeight = FontWeights.Bold,
-                Foreground = Brushes.Black,
-                Background = Brushes.White,
-                Padding = new Thickness(2)
+                Foreground = Brushes.White,
+                Background = new SolidColorBrush(Color.FromArgb(200, 13, 13, 13)),
+                Padding = new Thickness(3, 1, 3, 1)
             };
 
             Canvas.SetLeft(label, center.X + size / 2 + 2);
@@ -313,8 +317,10 @@ namespace CaseDelivery
                 Y1 = from.Y,
                 X2 = to.X,
                 Y2 = to.Y,
-                Stroke = isLastSegment ? Brushes.Green : Brushes.DarkBlue,
-                StrokeThickness = 2,
+                Stroke = isLastSegment ?
+                    new SolidColorBrush(Color.FromArgb(255, 0, 177, 79)) : // Зеленый Delivery Club для последнего сегмента
+                    Brushes.White, // Белый для обычных сегментов
+                StrokeThickness = 3,
                 StrokeDashArray = isLastSegment ? new DoubleCollection { 4, 2 } : null
             };
 
