@@ -7,9 +7,8 @@ namespace CaseDelivery
 {
     public class NearestNeighborAlgorithm
     {
-        public static RouteResult FindOptimalRoute(Order[] allPoints)
+        public static RouteResult FindOptimalRoute(Order[] allPoints) //находит оптимальный путь
         {
-            // 1. Проверка входных данных
             if (allPoints == null || allPoints.Length == 0)
                 return new RouteResult(new int[] { -1 }, new List<RouteSegment>());
 
@@ -17,20 +16,17 @@ namespace CaseDelivery
             if (depot.ID == 0)
                 throw new ArgumentException("Массив заказов должен содержать склад с ID = -1");
 
-            // 2. Создаем полный граф (включая склад)
             List<Point> points = allPoints.Select(o => o.Destination).ToList();
             double[,] distanceMatrix = BuildDistanceMatrix(points, allPoints);
 
-            // 3. Находим маршрут методом ближайшего соседа
             int[] route = BuildNearestNeighborRoute(allPoints, distanceMatrix);
 
-            // 4. Рассчитываем сегменты маршрута
             List<RouteSegment> routeSegments = CalculateRouteSegments(route, allPoints, distanceMatrix);
 
             return new RouteResult(route, routeSegments);
         }
 
-        public class RouteResult
+        public class RouteResult//Используем для итогового маршрута
         {
             public int[] Route { get; }
             public List<RouteSegment> Segments { get; }
@@ -42,7 +38,7 @@ namespace CaseDelivery
             }
         }
 
-        public class RouteSegment
+        public class RouteSegment//Детали одного отрезка маршрута
         {
             public int FromId { get; }
             public int ToId { get; }
@@ -65,9 +61,9 @@ namespace CaseDelivery
             }
         }
 
-        private static int[] BuildNearestNeighborRoute(Order[] allPoints, double[,] distanceMatrix)
+        private static int[] BuildNearestNeighborRoute(Order[] allPoints, double[,] distanceMatrix)// Построение маршрута ближайшего соседа
         {
-            List<int> route = new List<int> { -1 }; // Начинаем со склада
+            List<int> route = new List<int> { -1 };
             List<int> unvisited = Enumerable.Range(0, allPoints.Length)
                                           .Where(i => allPoints[i].ID != -1)
                                           .ToList();
@@ -77,7 +73,6 @@ namespace CaseDelivery
 
             while (unvisited.Count > 0)
             {
-                // Находим ближайшую непосещенную точку
                 int nearestIndex = FindNearestPoint(currentIndex, unvisited, distanceMatrix);
                 int orderId = allPoints[nearestIndex].ID;
 
@@ -87,11 +82,11 @@ namespace CaseDelivery
                 unvisited.Remove(currentIndex);
             }
 
-            route.Add(-1); // Возвращаемся на склад
+            route.Add(-1);
             return route.ToArray();
         }
 
-        private static int FindNearestPoint(int fromIndex, List<int> unvisitedIndices, double[,] distanceMatrix)
+        private static int FindNearestPoint(int fromIndex, List<int> unvisitedIndices, double[,] distanceMatrix)//Нахождение ближайшей точки 
         {
             int nearestIndex = unvisitedIndices[0];
             double minDistance = distanceMatrix[fromIndex, nearestIndex];
@@ -105,11 +100,10 @@ namespace CaseDelivery
                     nearestIndex = index;
                 }
             }
-
             return nearestIndex;
         }
 
-        private static List<RouteSegment> CalculateRouteSegments(int[] route, Order[] allPoints, double[,] distanceMatrix)
+        private static List<RouteSegment> CalculateRouteSegments(int[] route, Order[] allPoints, double[,] distanceMatrix)// расчитать вес точки
         {
             var segments = new List<RouteSegment>();
 
@@ -139,7 +133,7 @@ namespace CaseDelivery
             return segments;
         }
 
-        private static double[,] BuildDistanceMatrix(List<Point> points, Order[] allPoints)
+        private static double[,] BuildDistanceMatrix(List<Point> points, Order[] allPoints) //строим матрицу весов
         {
             int n = points.Count;
             double[,] matrix = new double[n, n];
