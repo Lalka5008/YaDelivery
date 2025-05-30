@@ -68,7 +68,7 @@ namespace CaseDelivery
             return nearestIndex;
         }
 
-        private static List<RouteSegment> CalculateRouteSegments(int[] route, Order[] allPoints, double[,] distanceMatrix)// расчитать вес точки
+        private static List<RouteSegment> CalculateRouteSegments(int[] route, Order[] allPoints, double[,] distanceMatrix)// Рассчитывает сегменты
         {
             var segments = new List<RouteSegment>();
 

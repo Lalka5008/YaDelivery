@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BestDelivery;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,24 @@ namespace CaseDelivery
         {
             Route = route;
             Segments = segments;
+        }
+        public static List<string> RouteInfoFormatter(RouteResult routeResult)//Для UI
+        {
+            var routeInfo = new List<string>
+            {
+                "Последовательность точек:"
+            };
+
+            for (int i = 0; i < routeResult.Route.Length; i++)
+            {
+                string pointName = routeResult.Route[i] == -1 ? "Склад" : $"Заказ {routeResult.Route[i]}";
+                routeInfo.Add($"{i + 1}. {pointName}");
+            }
+
+            routeInfo.Add("Детали сегментов:");
+            routeInfo.AddRange(routeResult.Segments.Select(segment => segment.ToString()));
+
+            return routeInfo;
         }
     }
 

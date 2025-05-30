@@ -4,228 +4,78 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using static CaseDelivery.NearestNeighborAlgorithm;
 
 namespace CaseDelivery
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private int _nextOrderId = 1;
-        private Order[] currentOrders;
-        private BestDelivery.Point depot;
+        public string PriorityDescription => _priorityManager.Description;
+        public Brush PriorityColor => _priorityManager.Color;
+        public double OrderPriority
+        {
+            get => _priorityManager.CurrentPriority;
+            set => _priorityManager.SetPriority(value);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         private readonly VisualDisplay _routeVisualizer;
-        private double _orderPriority;
-        private string _priorityDescription;
-        private Brush _priorityColor;
+        private readonly OrderManager _orderManager;
+        private readonly PriorityManager _priorityManager;
+
 
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this; 
+            DataContext = this;
+
             _routeVisualizer = new VisualDisplay(RouteCanvas);
-            UpdatePriorityInfo();
+            _orderManager = new OrderManager();
+            _priorityManager = new PriorityManager(this);
         }
 
-        private void CalculateRoute_Click(object sender, RoutedEventArgs e)
-        {
-            LoadSelectedDataset();
-            InitializeDepotAndOrderId();
-            UpdateRoute();
-        }
-        public double OrderPriority
-        {
-            get => _orderPriority;
-            set
-            {
-                if (_orderPriority != value)
-                {
-                    _orderPriority = value;
-                    UpdatePriorityInfo();
-                    OnPropertyChanged(nameof(OrderPriority));
-                }
-            }
-        }
-        public string PriorityDescription
-        {
-            get => _priorityDescription;
-            set
-            {
-                _priorityDescription = value;
-                OnPropertyChanged(nameof(PriorityDescription));
-            }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        public void OnPropertyChanged(string propertyName)//Обновляет PropertyChanged
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Brush PriorityColor
-        {
-            get => _priorityColor;
-            set
-            {
-                _priorityColor = value;
-                OnPropertyChanged(nameof(PriorityColor));
-            }
-        }
-        private void UpdatePriorityInfo()
-        {
-            if (OrderPriority <= 0.3)
-            {
-                PriorityDescription = "Низкий приоритет";
-                PriorityColor = Brushes.LimeGreen;
-            }
-            else if (OrderPriority <= 0.7)
-            {
-                PriorityDescription = "Средний приоритет";
-                PriorityColor = Brushes.Gold;
-            }
-            else if (OrderPriority <= 0.9)
-            {
-                PriorityDescription = "Высокий приоритет";
-                PriorityColor = Brushes.OrangeRed;
-            }
-            else
-            {
-                PriorityDescription = "Наивысший приоритет";
-                PriorityColor = Brushes.Red;
-            }
-        }
-        private void RouteCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!CanAddNewOrder()) return;
-
-            var clickPos = e.GetPosition(RouteCanvas);
-            var newPoint = ConvertCanvasToCoordinates(clickPos);
-            AddNewOrder(newPoint, OrderPrioritySlider.Value);
-            UpdateRoute();
-        }
-
-        private void LoadSelectedDataset()
-        {
-            int datasetIndex = DatasetComboBox.SelectedIndex + 1;
-            currentOrders = OrderArraysProvider.GetOrders(datasetIndex);
-        }
-
-        private void InitializeDepotAndOrderId()
+        private void CalculateRoute_Click(object sender, RoutedEventArgs e)//Обработчик кнопки "Построить маршрут"
         {
             try
             {
-                depot = currentOrders.First(o => o.ID == -1).Destination;
-                _nextOrderId = currentOrders.Max(o => o.ID) + 1;
+                _orderManager.LoadOrders(DatasetComboBox.SelectedIndex + 1);
+                UpdateRoute();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Выберите набор данных");
-            }
-            
-        }
-
-        private BestDelivery.Point ConvertCanvasToCoordinates(System.Windows.Point clickPos)
-        {
-            var allPoints = currentOrders.Select(o => o.Destination).ToList();
-            var bounds = CalculateBounds(allPoints);
-
-            double canvasWidth = RouteCanvas.ActualWidth;
-            double canvasHeight = RouteCanvas.ActualHeight;
-
-            double x = (clickPos.X - 20) / (canvasWidth - 40) * (bounds.maxX - bounds.minX) + bounds.minX;
-            double y = (canvasHeight - 20 - clickPos.Y) / (canvasHeight - 40) * (bounds.maxY - bounds.minY) + bounds.minY;
-
-            return new BestDelivery.Point { X = x, Y = y };
-        }
-
-        private (double minX, double maxX, double minY, double maxY) CalculateBounds(List<BestDelivery.Point> points)
-        {
-            double minX = points.Min(p => p.X);
-            double maxX = points.Max(p => p.X);
-            double minY = points.Min(p => p.Y);
-            double maxY = points.Max(p => p.Y);
-
-            double padding = 0.1 * (maxX - minX);
-            return (minX - padding, maxX + padding, minY - padding, maxY + padding);
-        }
-
-        private void AddNewOrder(BestDelivery.Point point, double priority)
-        {
-            var newOrder = new Order
-            {
-                ID = _nextOrderId++,
-                Destination = point,
-                Priority = priority
-            };
-
-            currentOrders = currentOrders.Append(newOrder).ToArray();
-        }
-
-        private void UpdateRoute()
-        {
-            var routeResult = NearestNeighborAlgorithm.FindOptimalRoute(currentOrders);
-            VisualizeRoute(routeResult);
-            ShowRouteInfo(routeResult);
-            UpdateRouteCost(routeResult.Route);
-        }
-
-        private void VisualizeRoute(RouteResult routeResult)
-        {
-            _routeVisualizer.VisualizeRoute(currentOrders, routeResult.Route, depot);
-        }
-
-        private void ShowRouteInfo(RouteResult routeResult)
-        {
-            var routeInfo = new List<string>();
-
-            routeInfo.Add("Последовательность точек:");
-            for (int i = 0; i < routeResult.Route.Length; i++)
-            {
-                string pointName = routeResult.Route[i] == -1 ? "Склад" : $"Заказ {routeResult.Route[i]}";
-                routeInfo.Add($"{i + 1}. {pointName}");
-            }
-
-            routeInfo.Add("Детали сегментов:");
-            foreach (var segment in routeResult.Segments)
-            {
-                routeInfo.Add(segment.ToString());
-            }
-
-            RouteListBox.ItemsSource = routeInfo;
-        }
-
-        private void UpdateRouteCost(int[] route)
-        {
-            if (RoutingTestLogic.TestRoutingSolution(depot, currentOrders.Where(o => o.ID != -1).ToArray(), route, out double routeCost))
-            {
-                RouteCostText.Text = $"Стоимость маршрута: {routeCost:F2}";
-            }
-            else
-            {
-                RouteCostText.Text = "Ошибка в маршруте";
+                MessageBox.Show("Ошибка загрузки данных: " + ex.Message);
             }
         }
 
-        private bool CanAddNewOrder()
+        private void RouteCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)//Обработчик клика по Canvas
         {
-            return currentOrders != null && !depot.Equals(default(BestDelivery.Point));
-        }
-    }
+            if (!_orderManager.CanAddOrder) return;
 
-    public static class OrderArraysProvider
-    {
-        public static Order[] GetOrders(int datasetIndex)
+            var clickPos = e.GetPosition(RouteCanvas);
+            _orderManager.AddOrderFromClick(clickPos, OrderPriority, RouteCanvas.ActualWidth, RouteCanvas.ActualHeight);
+            UpdateRoute();
+        }
+
+        private void UpdateRoute()//Обновляет маршрут
         {
-            return datasetIndex switch
+            var routeResult = NearestNeighborAlgorithm.FindOptimalRoute(_orderManager.CurrentOrders);
+            _routeVisualizer.VisualizeRoute(_orderManager.CurrentOrders, routeResult.Route, _orderManager.Depot);
+            DisplayRouteInfo(routeResult);
+        }
+
+        private void DisplayRouteInfo(RouteResult routeResult)//Отображает информацию о маршруте
+        {
+            RouteListBox.ItemsSource = RouteResult.RouteInfoFormatter(routeResult);
+            if (RoutingTestLogic.TestRoutingSolution(_orderManager.Depot, _orderManager.CurrentOrders.Where(o => o.ID != -1).ToArray(), routeResult.Route, out double routeCost))
             {
-                1 => OrderArrays.GetOrderArray1(),
-                2 => OrderArrays.GetOrderArray2(),
-                3 => OrderArrays.GetOrderArray3(),
-                4 => OrderArrays.GetOrderArray4(),
-                5 => OrderArrays.GetOrderArray5(),
-                6 => OrderArrays.GetOrderArray6(),
-                _ => Array.Empty<Order>()
-            };
+                RouteCostText.Text =$"Стоимость маршрута: {routeCost:F2}";
+            }
+            else RouteCostText.Text= "Ошибка в маршруте";
         }
     }
 }

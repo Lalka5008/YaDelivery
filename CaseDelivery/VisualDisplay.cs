@@ -12,7 +12,6 @@ namespace CaseDelivery
     internal class VisualDisplay
     {
         private const int CanvasPadding = 20;
-        private const double AxisPaddingFactor = 0.1;
         private const double DefaultPointSize = 12;
         private const double DepotPointSize = 14;
         private const double LineThickness = 3;
@@ -33,7 +32,7 @@ namespace CaseDelivery
             _canvas = canvas ?? throw new ArgumentNullException(nameof(canvas));
         }
 
-        public void VisualizeRoute(Order[] orders, int[] route, BestDelivery.Point depot)
+        public void VisualizeRoute(Order[] orders, int[] route, BestDelivery.Point depot)//Визуализация маршрута
         {
             _canvas.Children.Clear();
 
@@ -66,19 +65,29 @@ namespace CaseDelivery
                 previousScaled = currentScaled;
             }
         }
+        public static BestDelivery.Point ConvertCanvasToCoordinates(System.Windows.Point clickPos, Order[] orders, double canvasWidth, double canvasHeight)//Преобразуем точку по клику для Canvas
+        {
+            var allPoints = orders.Select(o => o.Destination).ToList();
+            var bounds = CalculateBounds(allPoints);
 
-        private (double minX, double maxX, double minY, double maxY) CalculateBounds(IEnumerable<BestDelivery.Point> points)
+            double x = (clickPos.X - 20) / (canvasWidth - 40) * (bounds.maxX - bounds.minX) + bounds.minX;
+            double y = (canvasHeight - 20 - clickPos.Y) / (canvasHeight - 40) * (bounds.maxY - bounds.minY) + bounds.minY;
+
+            return new BestDelivery.Point { X = x, Y = y };
+        }
+
+        private static (double minX, double maxX, double minY, double maxY) CalculateBounds(List<BestDelivery.Point> points)//Вычисляет точки для масштабирования
         {
             double minX = points.Min(p => p.X);
             double maxX = points.Max(p => p.X);
             double minY = points.Min(p => p.Y);
             double maxY = points.Max(p => p.Y);
 
-            double padding = AxisPaddingFactor * (maxX - minX);
+            double padding = 0.1 * (maxX - minX);
             return (minX - padding, maxX + padding, minY - padding, maxY + padding);
         }
 
-        private System.Windows.Point ScalePoint(BestDelivery.Point point, (double minX, double maxX, double minY, double maxY) bounds)
+        private System.Windows.Point ScalePoint(BestDelivery.Point point, (double minX, double maxX, double minY, double maxY) bounds)//Преобразует реальные координаты в координаты Canvas
         {
             double canvasWidth = _canvas.ActualWidth;
             double canvasHeight = _canvas.ActualHeight;
@@ -89,7 +98,7 @@ namespace CaseDelivery
             return new System.Windows.Point(scaledX, scaledY);
         }
 
-        private void DrawCoordinateAxes()
+        private void DrawCoordinateAxes()//Рисует оси X/Y со стрелками и подписями
         {
             double canvasWidth = _canvas.ActualWidth;
             double canvasHeight = _canvas.ActualHeight;
@@ -116,12 +125,12 @@ namespace CaseDelivery
             CreateTextBlock("Y", 25, 10, isBold: true);
         }
 
-        private void DrawArrow(System.Windows.Point start, System.Windows.Point end)
+        private void DrawArrow(System.Windows.Point start, System.Windows.Point end)//Рисует стрелку
         {
             DrawLine(start, end, AxisBrush, ArrowThickness);
         }
 
-        private void DrawLine(System.Windows.Point from, System.Windows.Point to, SolidColorBrush brush, double thickness)
+        private void DrawLine(System.Windows.Point from, System.Windows.Point to, SolidColorBrush brush, double thickness)//Рисует линию с заданными параметрами
         {
             var line = new Line
             {
@@ -135,7 +144,7 @@ namespace CaseDelivery
             _canvas.Children.Add(line);
         }
 
-        private void DrawRouteLine(System.Windows.Point from, System.Windows.Point to, bool isLastSegment)
+        private void DrawRouteLine(System.Windows.Point from, System.Windows.Point to, bool isLastSegment)//Рисует отрезок маршрута (пунктир для последнего сегмента)
         {
             var line = new Line
             {
@@ -150,7 +159,7 @@ namespace CaseDelivery
             _canvas.Children.Add(line);
         }
 
-        private void DrawPoint(System.Windows.Point center, SolidColorBrush color, string text, double size)
+        private void DrawPoint(System.Windows.Point center, SolidColorBrush color, string text, double size)//Рисует точку с подписью
         {
             var ellipse = new Ellipse
             {
@@ -168,7 +177,7 @@ namespace CaseDelivery
             CreateTextBlock(text, center.X + size / 2 + 2, center.Y - LabelFontSize, background: TextBackground);
         }
 
-        private void CreateTextBlock(string text, double left, double top, bool isBold = false, SolidColorBrush background = null)
+        private void CreateTextBlock(string text, double left, double top, bool isBold = false, SolidColorBrush background = null)//Создаёт текстовую подпись с фоном
         {
             var textBlock = new TextBlock
             {
