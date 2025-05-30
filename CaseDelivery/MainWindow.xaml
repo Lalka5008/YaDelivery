@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CaseDelivery"
         mc:Ignorable="d"
-        Title="Best Delivery" Height="600" Width="950"
+        Title="Я-доставка" Height="600" Width="950"
         Background="#0D0D0D"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterScreen">

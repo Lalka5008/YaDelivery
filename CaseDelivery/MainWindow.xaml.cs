@@ -196,11 +196,7 @@ namespace CaseDelivery
 
         private void UpdateRouteCost(int[] route)
         {
-            if (RoutingTestLogic.TestRoutingSolution(
-                depot,
-                currentOrders.Where(o => o.ID != -1).ToArray(),
-                route,
-                out double routeCost))
+            if (RoutingTestLogic.TestRoutingSolution(depot, currentOrders.Where(o => o.ID != -1).ToArray(), route, out double routeCost))
             {
                 RouteCostText.Text = $"Стоимость маршрута: {routeCost:F2}";
             }
