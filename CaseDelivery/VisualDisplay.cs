@@ -19,11 +19,11 @@ namespace CaseDelivery
         private const double ArrowThickness = 1.5;
         private const double LabelFontSize = 12;
 
-        private static readonly SolidColorBrush DepotBrush = new SolidColorBrush(Color.FromRgb(0, 100, 0));
-        private static readonly SolidColorBrush OrderBrush = new SolidColorBrush(Color.FromRgb(0, 177, 79));
-        private static readonly SolidColorBrush WhiteBrush = Brushes.White;
-        private static readonly SolidColorBrush AxisBrush = new SolidColorBrush(Color.FromRgb(100, 100, 100));
-        private static readonly SolidColorBrush TextBackground = new SolidColorBrush(Color.FromArgb(200, 13, 13, 13));
+        private static readonly SolidColorBrush s_DepotBrush = new SolidColorBrush(Color.FromRgb(0, 100, 0));
+        private static readonly SolidColorBrush s_OrderBrush = new SolidColorBrush(Color.FromRgb(0, 177, 79));
+        private static readonly SolidColorBrush s_WhiteBrush = Brushes.White;
+        private static readonly SolidColorBrush s_AxisBrush = new SolidColorBrush(Color.FromRgb(100, 100, 100));
+        private static readonly SolidColorBrush s_TextBackground = new SolidColorBrush(Color.FromArgb(200, 13, 13, 13));
 
         private readonly Canvas _canvas;
 
@@ -45,7 +45,7 @@ namespace CaseDelivery
             var bounds = CalculateBounds(allPoints);
 
             var scaledDepot = ScalePoint(depot, bounds);
-            DrawPoint(scaledDepot, DepotBrush, "Склад", DepotPointSize);
+            DrawPoint(scaledDepot, s_DepotBrush, "Склад", DepotPointSize);
 
             var previousScaled = scaledDepot;
 
@@ -57,7 +57,7 @@ namespace CaseDelivery
                 DrawRouteLine(previousScaled, currentScaled, isLastSegment: i == route.Length - 1);
 
                 var label = route[i] == -1 ? "Склад" : $"Заказ {route[i]}";
-                var brush = route[i] == -1 ? DepotBrush : OrderBrush;
+                var brush = route[i] == -1 ? s_DepotBrush : s_OrderBrush;
                 var size = route[i] == -1 ? DepotPointSize : DefaultPointSize;
 
                 DrawPoint(currentScaled, brush, label, size);
@@ -105,11 +105,11 @@ namespace CaseDelivery
 
             DrawLine(new System.Windows.Point(CanvasPadding, canvasHeight - CanvasPadding),
                     new System.Windows.Point(canvasWidth - CanvasPadding, canvasHeight - CanvasPadding),
-                    AxisBrush, AxisThickness);
+                    s_AxisBrush, AxisThickness);
 
             DrawLine(new System.Windows.Point(CanvasPadding, CanvasPadding),
                     new System.Windows.Point(CanvasPadding, canvasHeight - CanvasPadding),
-                    AxisBrush, AxisThickness);
+                    s_AxisBrush, AxisThickness);
 
             DrawArrow(new System.Windows.Point(canvasWidth - CanvasPadding, canvasHeight - CanvasPadding),
                      new System.Windows.Point(canvasWidth - CanvasPadding - 10, canvasHeight - CanvasPadding - 5));
@@ -127,7 +127,7 @@ namespace CaseDelivery
 
         private void DrawArrow(System.Windows.Point start, System.Windows.Point end)//Рисует стрелку
         {
-            DrawLine(start, end, AxisBrush, ArrowThickness);
+            DrawLine(start, end, s_AxisBrush, ArrowThickness);
         }
 
         private void DrawLine(System.Windows.Point from, System.Windows.Point to, SolidColorBrush brush, double thickness)//Рисует линию с заданными параметрами
@@ -152,7 +152,7 @@ namespace CaseDelivery
                 Y1 = from.Y,
                 X2 = to.X,
                 Y2 = to.Y,
-                Stroke = isLastSegment ? OrderBrush : WhiteBrush,
+                Stroke = isLastSegment ? s_OrderBrush : s_WhiteBrush,
                 StrokeThickness = LineThickness,
                 StrokeDashArray = isLastSegment ? new DoubleCollection { 4, 2 } : null
             };
@@ -166,7 +166,7 @@ namespace CaseDelivery
                 Width = size,
                 Height = size,
                 Fill = color,
-                Stroke = WhiteBrush,
+                Stroke = s_WhiteBrush,
                 StrokeThickness = 1.5
             };
 
@@ -174,7 +174,7 @@ namespace CaseDelivery
             Canvas.SetTop(ellipse, center.Y - size / 2);
             _canvas.Children.Add(ellipse);
 
-            CreateTextBlock(text, center.X + size / 2 + 2, center.Y - LabelFontSize, background: TextBackground);
+            CreateTextBlock(text, center.X + size / 2 + 2, center.Y - LabelFontSize, background: s_TextBackground);
         }
 
         private void CreateTextBlock(string text, double left, double top, bool isBold = false, SolidColorBrush background = null)//Создаёт текстовую подпись с фоном
@@ -184,7 +184,7 @@ namespace CaseDelivery
                 Text = text,
                 FontSize = LabelFontSize,
                 FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal,
-                Foreground = WhiteBrush,
+                Foreground = s_WhiteBrush,
                 Background = background,
                 Padding = new Thickness(3, 1, 3, 1)
             };

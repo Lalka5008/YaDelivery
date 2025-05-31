@@ -9,14 +9,15 @@ namespace CaseDelivery
 {
     public class PriorityManager
     {
+        public double CurrentPriority => _currentPriority;
+        public string Description => _description;
+        public Brush Color => _color;
+
         private readonly MainWindow _window;
         private double _currentPriority;
         private string _description;
         private Brush _color;
 
-        public double CurrentPriority => _currentPriority;
-        public string Description => _description;
-        public Brush Color => _color;
 
         public PriorityManager(MainWindow window)
         {

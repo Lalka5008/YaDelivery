@@ -4,13 +4,13 @@ namespace CaseDelivery
 {
     public class OrderManager
     {
-        private int _nextOrderId = 1;
-        private Order[] _currentOrders;
-        private BestDelivery.Point _depot;
-
         public Order[] CurrentOrders => _currentOrders;
         public BestDelivery.Point Depot => _depot;
         public bool CanAddOrder => _currentOrders != null && !_depot.Equals(default(BestDelivery.Point));
+
+        private int _nextOrderId = 1;
+        private Order[] _currentOrders;
+        private BestDelivery.Point _depot;
 
         public void LoadOrders(int datasetIndex)
         {
