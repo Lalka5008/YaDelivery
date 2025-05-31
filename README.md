@@ -83,7 +83,5 @@
 
 🔗 Полезные ссылки
 <div align="center">
-Documentation
-GitHub
-
-</div><div align="center"> <br> <img src="https://img.shields.io/badge/LICENSE-MIT-green?style=for-the-badge" alt="MIT License"> <img src="https://img.shields.io/badge/версия-1.0.0-blue?style=for-the-badge" alt="Version"> </div> ```
+Documentation https://docs.google.com/document/d/1HvZX4hj6CCmpE2uQQ2pgj8JHsMddnYKq/edit?usp=sharing&ouid=114554456727597336794&rtpof=true&sd=true
+GitHub 
