@@ -85,3 +85,4 @@
 <div align="center">
 [Документация проекта](https://docs.google.com/document/d/1HvZX4hj6CCmpE2uQQ2pgj8JHsMddnYKq/edit?usp=sharing&ouid=114554456727597336794&rtpof=true&sd=true)
 [GitHub](https://github.com/Lalka5008/YaDelivery)
+</div>
